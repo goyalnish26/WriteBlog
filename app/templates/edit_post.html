@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Edit Post{% endblock %}
+{% block content %}
+  {% if post %}
+    <h3>Editing: {{ post.title }}</h3>
+  {% endif %}
+  <form method="POST">
+      {{ form.hidden_tag() }}
+      <div>{{ form.title.label }} {{ form.title() }}</div>
+      <div>{{ form.content.label }} {{ form.content() }}</div>
+      <div>{{ form.submit(class_='btn btn-primary', value='Update') }}</div>
+  </form>
+{% endblock %} 

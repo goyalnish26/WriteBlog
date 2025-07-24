@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}View Post{% endblock %}
+{% block content %}
+  {% if post %}
+    <div class="card">
+      <h2>{{ post.title }}</h2>
+      <p>{{ post.content }}</p>
+      <small>
+        By {% if post.author %}{{ post.author.name }}{% else %}Unknown{% endif %} on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}
+      </small>
+    </div>
+    {% if post and current_user.is_authenticated and post.author == current_user %}
+      <a href="{{ url_for('blog.edit_post', post_id=post.id) }}">Edit</a>
+      <form action="{{ url_for('blog.delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </form>
+    {% endif %}
+  {% else %}
+    <p>No post found.</p>
+  {% endif %}
+  <a href="{{ url_for('blog.home') }}">Back to Home</a>
+{% endblock %} 

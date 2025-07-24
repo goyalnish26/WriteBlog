@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2 class="mb-4">Your Posts</h2>
+{% if posts %}
+  {% for post in posts %}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">{{ post.title }}</h5>
+        <p class="card-text">{{ post.content[:150] }}{% if post.content|length > 150 %}...{% endif %}</p>
+        <small class="text-muted">Posted on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+        <div class="mt-2">
+          <a href="{{ url_for('blog.view_post', post_id=post.id) }}" class="btn btn-outline-primary btn-sm">View</a>
+          <a href="{{ url_for('blog.edit_post', post_id=post.id) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+          <form action="{{ url_for('blog.delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="alert alert-info">You have not created any posts yet.</div>
+{% endif %}
+{% endblock %}
