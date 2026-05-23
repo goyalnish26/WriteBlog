@@ -1,13 +1,14 @@
-from flask import Blueprint, render_template, redirect, flash, url_for
+from flask import Blueprint, render_template, redirect, flash, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required
-from .. import db
+from .. import db, limiter
 from ..models import User
 from .forms import RegisterForm, LoginForm
 
 auth = Blueprint('auth', __name__)
 
 @auth.route('/register', methods=['GET', 'POST'])
+@limiter.limit('10 per hour')
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
@@ -20,6 +21,7 @@ def register():
     return render_template("register.html", form=form)
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit('20 per hour')
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -27,7 +29,7 @@ def login():
         if user and check_password_hash(user.password, form.password.data):
             login_user(user)
             flash("Logged in successfully!", "success")
-            return redirect(url_for('blog.home'))
+            return redirect(request.args.get('next') or url_for('blog.home'))
         flash("Invalid credentials", "danger")
     return render_template("login.html", form=form)
 

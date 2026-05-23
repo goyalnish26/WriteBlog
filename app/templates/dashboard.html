@@ -1,26 +1,163 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h2 class="mb-4">Your Posts</h2>
-{% if posts %}
-  {% for post in posts %}
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">{{ post.title }}</h5>
-        <p class="card-text">{{ post.content[:150] }}{% if post.content|length > 150 %}...{% endif %}</p>
-        <small class="text-muted">Posted on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
-        <div class="mt-2">
-          <a href="{{ url_for('blog.view_post', post_id=post.id) }}" class="btn btn-outline-primary btn-sm">View</a>
-          <a href="{{ url_for('blog.edit_post', post_id=post.id) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
-          <form action="{{ url_for('blog.delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-          </form>
-        </div>
+<div class="container py-5">
+  <!-- Header -->
+  <div class="dashboard-header mb-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); border-radius: 1rem; padding: 3rem; color: white; box-shadow: 0 10px 30px rgba(83, 74, 183, 0.15);">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0;">Your Dashboard</h1>
+        <p style="margin-top: 0.5rem; opacity: 0.9; font-size: 1.05rem;">Manage your posts, bookmarks, and track engagement</p>
+      </div>
+      <a href="{{ url_for('blog.create_post') }}" class="btn" style="background: white; color: var(--primary-color); border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <i class="bi bi-plus-lg"></i> New Post
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row mb-5">
+    <div class="col-md-3 mb-3">
+      <div class="stat-card" style="background: white; border-radius: 1rem; padding: 2rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: 4px solid var(--primary-color);">
+        <div style="font-size: 2.5rem; color: var(--primary-color); font-weight: 800;">{{ posts|length }}</div>
+        <div style="color: var(--text-muted); font-weight: 500; font-size: 0.95rem; margin-top: 0.25rem;">Posts Written</div>
       </div>
     </div>
-  {% endfor %}
-{% else %}
-  <div class="alert alert-info">You have not created any posts yet.</div>
-{% endif %}
+    <div class="col-md-3 mb-3">
+      <div class="stat-card" style="background: white; border-radius: 1rem; padding: 2rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: 4px solid #f43f5e;">
+        <div style="font-size: 2.5rem; color: #f43f5e; font-weight: 800;">{{ posts|sum(attribute='likes_count')|int }}</div>
+        <div style="color: var(--text-muted); font-weight: 500; font-size: 0.95rem; margin-top: 0.25rem;">Total Likes</div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="stat-card" style="background: white; border-radius: 1rem; padding: 2rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: 4px solid var(--secondary-color);">
+        <div style="font-size: 2.5rem; color: var(--secondary-color); font-weight: 800;">{{ posts|sum(attribute='view_count')|int }}</div>
+        <div style="color: var(--text-muted); font-weight: 500; font-size: 0.95rem; margin-top: 0.25rem;">Total Views</div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="stat-card" style="background: white; border-radius: 1rem; padding: 2rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-top: 4px solid #f59e0b;">
+        <div style="font-size: 2.5rem; color: #f59e0b; font-weight: 800;">{{ bookmarks|length }}</div>
+        <div style="color: var(--text-muted); font-weight: 500; font-size: 0.95rem; margin-top: 0.25rem;">Bookmarks</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist" style="border-bottom: 2px solid rgba(83,74,183,0.1);">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab" style="color: var(--text-dark); font-weight: 600; border: none; border-bottom: 3px solid transparent; padding: 1rem 1.5rem; transition: all 0.3s ease;">
+        <i class="bi bi-pencil-square"></i> Your Posts
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="bookmarks-tab" data-bs-toggle="tab" data-bs-target="#bookmarks" type="button" role="tab" style="color: var(--text-muted); font-weight: 600; border: none; border-bottom: 3px solid transparent; padding: 1rem 1.5rem; transition: all 0.3s ease;">
+        <i class="bi bi-bookmark"></i> Bookmarks
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Posts Tab -->
+    <div class="tab-pane fade show active" id="posts" role="tabpanel">
+      {% if posts %}
+        <div class="posts-grid">
+          {% for post in posts %}
+            <div class="post-card" style="background: white; border-radius: 1rem; padding: 1.75rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.02); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 1.5rem;">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 style="color: var(--text-dark); font-weight: 700; margin: 0; font-size: 1.25rem;">{{ post.title }}</h5>
+                <a href="{{ url_for('blog.edit_post', post_id=post.id) }}" class="btn btn-sm" style="background: transparent; color: var(--primary-color); border: none; padding: 0;" title="Edit Post">
+                  <i class="bi bi-pencil-square" style="font-size: 1.2rem;"></i>
+                </a>
+              </div>
+
+              <div class="post-meta mb-3" style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-muted);">
+                <span><i class="bi bi-calendar"></i> {{ post.date_posted.strftime('%b %d, %Y') }}</span>
+                <span><i class="bi bi-eye"></i> {{ post.view_count }} views</span>
+                <span><i class="bi bi-heart-fill" style="color: #f43f5e;"></i> {{ post.like_count() }} likes</span>
+                <span><i class="bi bi-chat-dots-fill" style="color: var(--primary-light);"></i> {{ post.comments|length }} comments</span>
+              </div>
+
+              <div style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                {{ post.content[:150] | render_markdown | safe }}{% if post.content|length > 150 %}...{% endif %}
+              </div>
+
+              <div class="post-actions d-flex gap-2">
+                <a href="{{ url_for('blog.view_post', post_id=post.id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 0.5rem; padding: 0.5rem 1.25rem; font-weight: 600; text-decoration: none;">
+                  <i class="bi bi-eye"></i> View
+                </a>
+                <a href="{{ url_for('blog.edit_post', post_id=post.id) }}" class="btn btn-sm btn-outline-secondary" style="border-radius: 0.5rem; padding: 0.5rem 1.25rem; font-weight: 600; text-decoration: none;">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state text-center py-5" style="background: rgba(83,74,183,0.03); border-radius: 1rem; padding: 3rem; border: 1px dashed var(--border-color);">
+          <i class="bi bi-pencil-square" style="font-size: 3rem; color: rgba(83,74,183,0.3); display: block; margin-bottom: 1rem;"></i>
+          <h5 style="color: var(--text-muted);">No posts yet</h5>
+          <p style="color: var(--text-muted); opacity: 0.7; margin-bottom: 1.5rem;">Start sharing your ideas with the community</p>
+          <a href="{{ url_for('blog.create_post') }}" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            <i class="bi bi-plus-lg"></i> Create First Post
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Bookmarks Tab -->
+    <div class="tab-pane fade" id="bookmarks" role="tabpanel">
+      {% if bookmarks %}
+        <div class="bookmarks-grid">
+          {% for bookmark in bookmarks %}
+            <div class="bookmark-card" style="background: white; border-radius: 1rem; padding: 1.75rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.02); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 1.5rem;">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 style="color: var(--text-dark); font-weight: 700; margin: 0; font-size: 1.25rem;">{{ bookmark.post.title }}</h5>
+                <i class="bi bi-bookmark-fill" style="color: #f59e0b; font-size: 1.25rem;"></i>
+              </div>
+
+              <p class="text-muted mb-3" style="margin: 0; font-size: 0.85rem;">
+                <i class="bi bi-person-circle text-primary"></i> {{ bookmark.post.author.name if bookmark.post.author else 'Unknown' }}
+              </p>
+
+              <div style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem; font-size: 0.95rem;">
+                {{ bookmark.post.content[:150] | render_markdown | safe }}{% if bookmark.post.content|length > 150 %}...{% endif %}
+              </div>
+
+              <a href="{{ url_for('blog.view_post', post_id=bookmark.post.id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 0.5rem; padding: 0.5rem 1.25rem; font-weight: 600; text-decoration: none;">
+                <i class="bi bi-arrow-right"></i> Read Post
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state text-center py-5" style="background: rgba(14,165,233,0.03); border-radius: 1rem; padding: 3rem; border: 1px dashed var(--border-color);">
+          <i class="bi bi-bookmark" style="font-size: 3rem; color: rgba(14,165,233,0.3); display: block; margin-bottom: 1rem;"></i>
+          <h5 style="color: var(--text-muted);">No bookmarks yet</h5>
+          <p style="color: var(--text-muted); opacity: 0.7; margin-bottom: 1.5rem;">Bookmark posts to save them for later</p>
+          <a href="{{ url_for('blog.home') }}" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600;">
+            <i class="bi bi-search"></i> Explore Posts
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .nav-link.active {
+    color: var(--primary-color) !important;
+    border-bottom-color: var(--primary-color) !important;
+    background: transparent !important;
+  }
+  .post-card:hover, .bookmark-card:hover {
+    transform: translateY(-4px) !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 15px 30px rgba(83, 74, 183, 0.08) !important;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+</style>
 {% endblock %}

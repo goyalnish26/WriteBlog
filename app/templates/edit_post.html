@@ -1,13 +1,149 @@
 {% extends 'base.html' %}
 {% block title %}Edit Post{% endblock %}
 {% block content %}
-  {% if post %}
-    <h3>Editing: {{ post.title }}</h3>
-  {% endif %}
-  <form method="POST">
-      {{ form.hidden_tag() }}
-      <div>{{ form.title.label }} {{ form.title() }}</div>
-      <div>{{ form.content.label }} {{ form.content() }}</div>
-      <div>{{ form.submit(class_='btn btn-primary', value='Update') }}</div>
-  </form>
+<div class="container py-5">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="form-container" style="background: white; border-radius: 12px; padding: 3rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        {% if post %}
+          <h1 class="mb-1" style="font-size: 2rem; color: var(--dark-color); font-weight: 700;">
+            <i class="bi bi-pencil-square" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
+            Edit Post
+          </h1>
+          <p class="text-muted mb-4">Currently editing: <strong>{{ post.title }}</strong></p>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="editForm">
+          {{ form.hidden_tag() }}
+
+          <!-- Title Field -->
+          <div class="mb-4">
+            <label class="form-label" style="font-weight: 600; color: var(--dark-color); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-type" style="color: var(--primary-color);"></i>
+              {{ form.title.label.text }}
+            </label>
+            {{ form.title(class="form-control form-input", placeholder="Enter title...") }}
+            {% if form.title.errors %}
+              <div class="text-danger small mt-1">{{ form.title.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Tags Field -->
+          <div class="mb-4">
+            <label class="form-label" style="font-weight: 600; color: var(--dark-color); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-tag" style="color: var(--primary-color);"></i>
+              {{ form.tags.label.text }}
+            </label>
+            {{ form.tags(class="form-control form-input", placeholder="e.g. python, flask (comma-separated)") }}
+            <small class="text-muted d-block mt-1">Separate multiple tags with commas</small>
+            {% if form.tags.errors %}
+              <div class="text-danger small mt-1">{{ form.tags.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Thumbnail Field -->
+          <div class="mb-4">
+            <label class="form-label" style="font-weight: 600; color: var(--dark-color); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-image" style="color: var(--primary-color);"></i>
+              {{ form.thumbnail.label.text }}
+            </label>
+            <div class="input-group">
+              {{ form.thumbnail(class="form-control form-input") }}
+            </div>
+            <small class="text-muted d-block mt-1">JPG, PNG files - recommended 1200x600px</small>
+            {% if form.thumbnail.errors %}
+              <div class="text-danger small mt-1">{{ form.thumbnail.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Content Field -->
+          <div class="mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label m-0" style="font-weight: 600; color: var(--dark-color); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-pencil-square" style="color: var(--primary-color);"></i>
+                {{ form.content.label.text }}
+              </label>
+              <button type="button" class="btn btn-sm" id="preview-toggle" style="background: linear-gradient(135deg, var(--secondary-color), #00d9ff); color: white; border: none; border-radius: 6px;">
+                <i class="bi bi-eye"></i> Preview
+              </button>
+            </div>
+            {{ form.content(class="form-control form-input", rows="12", style="font-family: 'Courier New', monospace; resize: vertical;") }}
+            <small class="text-muted d-block mt-1">
+              <i class="bi bi-info-circle"></i> Markdown supported: **bold**, *italic*, # headers, code blocks, links, lists, etc.
+            </small>
+            {% if form.content.errors %}
+              <div class="text-danger small mt-1">{{ form.content.errors[0] }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Preview Box -->
+          <div id="markdownPreview" class="mb-4 p-4" style="display: none; background: rgba(91,33,182,0.05); border: 2px solid rgba(91,33,182,0.2); border-radius: 12px; line-height: 1.8;">
+            <h6 style="color: var(--primary-color); font-weight: 600; margin-bottom: 1rem;">
+              <i class="bi bi-eye-fill"></i> Preview
+            </h6>
+            <div id="previewContent" style="color: #333;"></div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex gap-3 pt-3 border-top">
+            {{ form.submit(class_="btn", style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; flex: 1;", value="Update Post") }}
+            <a href="{{ url_for('blog.view_post', post_id=post.id) }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-input {
+    border: 2px solid rgba(91,33,182,0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+  .form-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(91,33,182,0.1);
+    background-color: #fafbff;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(91,33,182,0.3);
+  }
+  #markdownPreview h1 { font-size: 2rem; font-weight: 700; margin-top: 1.5rem; }
+  #markdownPreview h2 { font-size: 1.75rem; font-weight: 700; margin-top: 1.25rem; }
+  #markdownPreview h3 { font-size: 1.5rem; font-weight: 700; margin-top: 1rem; }
+  #markdownPreview code { background: rgba(91,33,182,0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; }
+  #markdownPreview pre { background: #f5f5f5; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+  #markdownPreview pre code { background: none; padding: 0; }
+  #markdownPreview blockquote { border-left: 4px solid var(--primary-color); padding-left: 1rem; color: #666; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const contentInput = document.querySelector('textarea[name="content"]');
+  const preview = document.getElementById('markdownPreview');
+  const previewContent = document.getElementById('previewContent');
+  const toggle = document.getElementById('preview-toggle');
+
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault();
+    preview.style.display = preview.style.display === 'none' ? 'block' : 'none';
+    updatePreview();
+  });
+
+  contentInput.addEventListener('input', () => {
+    if (preview.style.display !== 'none') {
+      updatePreview();
+    }
+  });
+
+  function updatePreview() {
+    const content = contentInput.value || '*Nothing to preview yet*';
+    previewContent.innerHTML = marked.parse(content);
+  }
+</script>
 {% endblock %} 

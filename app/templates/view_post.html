@@ -1,23 +1,266 @@
 {% extends 'base.html' %}
-{% block title %}View Post{% endblock %}
+{% block title %}{{ post.title if post else 'Post' }}{% endblock %}
 {% block content %}
   {% if post %}
-    <div class="card">
-      <h2>{{ post.title }}</h2>
-      <p>{{ post.content }}</p>
-      <small>
-        By {% if post.author %}{{ post.author.name }}{% else %}Unknown{% endif %} on {{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}
-      </small>
+    <article class="post-article mb-5">
+      {% if post.thumbnail %}
+        <div class="post-thumbnail-container mb-4 rounded-lg overflow-hidden" style="max-height: 500px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);">
+          <img src="{{ url_for('static', filename='uploads/' ~ post.thumbnail) }}" alt="Post thumbnail" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+      {% endif %}
+      
+      <div class="post-header mb-4">
+        <h1 class="post-title mb-3" style="font-size: 2.5rem; font-weight: 700; line-height: 1.2; color: var(--dark-color);">{{ post.title }}</h1>
+        
+        <div class="post-meta d-flex align-items-center gap-3 flex-wrap mb-3" style="color: #666; font-size: 0.95rem;">
+          <div class="author-info d-flex align-items-center gap-2">
+            <i class="bi bi-person-circle" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+            <div>
+              <a href="{{ url_for('blog.profile', user_id=post.author.id) }}" class="text-decoration-none" style="color: var(--primary-color); font-weight: 500;">{{ post.author.name if post.author else 'Unknown' }}</a>
+              <div style="font-size: 0.85rem; color: #999;">Posted on {{ post.date_posted.strftime('%b %d, %Y') }}</div>
+            </div>
+          </div>
+          
+          <div class="post-stats d-flex gap-4">
+            <div class="stat" title="Views">
+              <i class="bi bi-eye" style="color: var(--secondary-color);"></i>
+              <span class="ms-1">{{ post.view_count }}</span>
+            </div>
+            <div class="stat" title="Likes">
+              <i class="bi bi-heart" style="color: #dc3545;"></i>
+              <span class="ms-1">{{ post.like_count() }}</span>
+            </div>
+            <div class="stat" title="Comments">
+              <i class="bi bi-chat-dots" style="color: var(--primary-color);"></i>
+              <span class="ms-1">{{ comments|length }}</span>
+            </div>
+          </div>
+        </div>
+
+        {% if post.tags %}
+          <div class="post-tags mb-3 d-flex gap-2 flex-wrap">
+            {% for tag in post.tags %}
+              <a href="{{ url_for('blog.home', tag=tag.name) }}" class="tag-badge">
+                <i class="bi bi-tag-fill" style="margin-right: 0.25rem;"></i>{{ tag.name }}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <style>
+        .post-article {
+          background: white;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          padding: 3rem 2rem;
+        }
+        .post-title {
+          background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .tag-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 0.5rem 1rem;
+          background: linear-gradient(135deg, rgba(91,33,182,0.1) 0%, rgba(14,165,233,0.1) 100%);
+          color: var(--primary-color);
+          border-radius: 20px;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          font-size: 0.9rem;
+          font-weight: 500;
+          border: 1px solid rgba(91,33,182,0.2);
+        }
+        .tag-badge:hover {
+          background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+          color: white;
+          border-color: transparent;
+          transform: translateY(-2px);
+        }
+      </style>
+      <div class="post-content mb-4">
+        <div class="post-body" style="font-size: 1.1rem; line-height: 1.8; color: #333;">
+          {{ post_html|safe }}
+        </div>
+      </div>
+
+      <div class="post-actions d-flex gap-2 mb-4 flex-wrap">
+        <form action="{{ url_for('blog.toggle_like', post_id=post.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-action" style="background: linear-gradient(135deg, #dc3545, #ff6b6b); color: white; border: none;">
+            <i class="bi bi-heart-fill"></i> Like ({{ post.like_count() }})
+          </button>
+        </form>
+        <form action="{{ url_for('blog.toggle_bookmark', post_id=post.id) }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-action" style="background: linear-gradient(135deg, var(--secondary-color), #00d9ff); color: white; border: none;">
+            <i class="bi bi-bookmark-fill"></i> Bookmark
+          </button>
+        </form>
+        
+        {% if current_user.is_authenticated and post.author == current_user %}
+          <a href="{{ url_for('blog.edit_post', post_id=post.id) }}" class="btn btn-action" style="background: linear-gradient(135deg, var(--primary-color), #8b5cf6); color: white; border: none;">
+            <i class="bi bi-pencil-square"></i> Edit
+          </a>
+          <form action="{{ url_for('blog.delete_post', post_id=post.id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-action" style="background: linear-gradient(135deg, #dc3545, #ff6b6b); color: white; border: none;">
+              <i class="bi bi-trash"></i> Delete
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      <style>
+        .post-content {
+          border-top: 2px solid rgba(91,33,182,0.1);
+          border-bottom: 2px solid rgba(91,33,182,0.1);
+          padding: 2rem 0;
+        }
+        .post-body img {
+          max-width: 100%;
+          height: auto;
+          margin: 1rem 0;
+          border-radius: 8px;
+        }
+        .btn-action {
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          font-weight: 500;
+          transition: all 0.3s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+        .btn-action:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+      </style>
+
+    </article>
+
+    <div class="row mt-5 gap-4">
+      <div class="col-lg-8">
+        <div class="comments-section" style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+          <h3 class="mb-4" style="font-size: 1.5rem; color: var(--dark-color); display: flex; align-items: center; gap: 0.5rem;">
+            <i class="bi bi-chat-dots" style="color: var(--primary-color);"></i>
+            Comments ({{ comments|length }})
+          </h3>
+
+          {% if comments %}
+            <div class="comments-list">
+              {% for comment in comments %}
+                <div class="comment-item mb-4 pb-4" style="border-bottom: 1px solid rgba(91,33,182,0.1); padding-bottom: 1.5rem;">
+                  <div class="comment-header d-flex align-items-center gap-3 mb-2">
+                    <i class="bi bi-person-circle" style="font-size: 2rem; color: var(--secondary-color);"></i>
+                    <div>
+                      <strong style="color: var(--dark-color);">{{ comment.author.name }}</strong>
+                      <div style="font-size: 0.85rem; color: #999;">{{ comment.date_posted.strftime('%b %d, %Y at %I:%M %p') }}</div>
+                    </div>
+                  </div>
+                  <p class="comment-body mb-2" style="color: #333; line-height: 1.6;">{{ comment.body }}</p>
+
+                  {% if comment.replies %}
+                    <div class="replies mt-3 ms-3 ps-3" style="border-left: 3px solid var(--secondary-color);">
+                      {% for reply in comment.replies %}
+                        <div class="reply-item mb-3 pb-3" style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                          <div class="reply-header d-flex align-items-center gap-2 mb-1">
+                            <i class="bi bi-person" style="color: var(--primary-color);"></i>
+                            <strong style="color: var(--dark-color); font-size: 0.95rem;">{{ reply.author.name }}</strong>
+                            <small style="color: #999;">{{ reply.date_posted.strftime('%b %d at %I:%M %p') }}</small>
+                          </div>
+                          <p class="reply-body mb-0" style="color: #555; font-size: 0.95rem; line-height: 1.6;">{{ reply.body }}</p>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-muted" style="background: rgba(91,33,182,0.05); border: none; border-radius: 8px; color: #666;">
+              <i class="bi bi-info-circle" style="margin-right: 0.5rem;"></i> No comments yet. Be the first to share your thoughts!
+            </div>
+          {% endif %}
+        </div>
+
+        {% if current_user.is_authenticated %}
+          <div class="add-comment-section mt-4" style="background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h5 class="mb-3" style="color: var(--dark-color); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="bi bi-pencil-lg" style="color: var(--secondary-color);"></i>
+              Add Your Comment
+            </h5>
+            <form action="{{ url_for('blog.add_comment', post_id=post.id) }}" method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="mb-3">
+                <textarea class="form-control" name="body" rows="4" placeholder="Share your thoughts..." style="border: 2px solid rgba(91,33,182,0.2); border-radius: 8px; font-size: 1rem; padding: 1rem;" required></textarea>
+              </div>
+              <button class="btn" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                <i class="bi bi-send"></i> Post Comment
+              </button>
+            </form>
+          </div>
+        {% else %}
+          <div class="alert alert-info alert-dismissible fade show mt-4" style="background: linear-gradient(135deg, rgba(14,165,233,0.1), rgba(59,130,246,0.1)); border: 1px solid var(--secondary-color); border-radius: 12px;" role="alert">
+            <i class="bi bi-info-circle" style="margin-right: 0.5rem; color: var(--secondary-color);"></i>
+            <strong>Log in to participate!</strong> Sign in to add comments, like posts, and bookmark your favorite content.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-lg-4">
+        <div class="sidebar-card" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); border-radius: 1rem; padding: 2rem; box-shadow: 0 10px 30px rgba(83, 74, 183, 0.15); position: sticky; top: 100px;">
+          <h5 class="mb-3" style="color: white; display: flex; align-items: center; gap: 0.5rem; font-weight: 700;">
+            <i class="bi bi-info-square-fill"></i>
+            Post Details
+          </h5>
+
+          <div class="detail-item mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.9);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; font-weight: 600;">Author</div>
+            <div style="font-weight: 600; margin-top: 0.25rem;">{{ post.author.name if post.author else 'Unknown' }}</div>
+          </div>
+
+          <div class="detail-item mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.9);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; font-weight: 600;">Published</div>
+            <div style="font-weight: 600; margin-top: 0.25rem;">{{ post.date_posted.strftime('%b %d, %Y') }}</div>
+          </div>
+
+          <div class="detail-item mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.9);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; font-weight: 600;">Views</div>
+            <div style="font-weight: 600; margin-top: 0.25rem;"><i class="bi bi-eye-fill"></i> {{ post.view_count }}</div>
+          </div>
+
+          <div class="detail-item mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.9);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; font-weight: 600;">Engagement</div>
+            <div style="font-weight: 600; margin-top: 0.25rem;">
+              <span><i class="bi bi-heart-fill" style="color: #ff6b6b;"></i> {{ post.like_count() }}</span>
+              <span class="ms-3"><i class="bi bi-chat-dots-fill" style="color: #ffc107;"></i> {{ comments|length }}</span>
+            </div>
+          </div>
+
+          <div class="detail-item" style="color: rgba(255,255,255,0.9);">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; font-weight: 600;">Reading Time</div>
+            <div style="font-weight: 600; margin-top: 0.25rem;"><i class="bi bi-clock-fill"></i> {{ (post.content.split()|length / 200)|round(0, 'ceil')|int }} min read</div>
+          </div>
+        </div>
+      </div>
     </div>
-    {% if post and current_user.is_authenticated and post.author == current_user %}
-      <a href="{{ url_for('blog.edit_post', post_id=post.id) }}">Edit</a>
-      <form action="{{ url_for('blog.delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-danger">Delete</button>
-      </form>
-    {% endif %}
   {% else %}
-    <p>No post found.</p>
+    <div class="container text-center py-5">
+      <div style="max-width: 500px; margin: 0 auto;">
+        <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: #ffc107; margin-bottom: 1rem;"></i>
+        <h2 style="color: #333; margin-bottom: 1rem;">Oops! Post Not Found</h2>
+        <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">The post you're looking for doesn't exist or has been deleted.</p>
+        <a href="{{ url_for('blog.home') }}" class="btn" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 500; text-decoration: none; display: inline-block;">
+          <i class="bi bi-arrow-left"></i> Return to Home
+        </a>
+      </div>
+    </div>
   {% endif %}
-  <a href="{{ url_for('blog.home') }}">Back to Home</a>
 {% endblock %} 
