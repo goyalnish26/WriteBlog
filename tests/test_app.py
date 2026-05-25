@@ -29,6 +29,40 @@ def test_home_page(client):
     assert response.status_code == 200
     assert b'All Posts' in response.data
 
+def test_register_duplicate_email(client):
+    client.post('/register', data={
+        'name': 'First User',
+        'email': 'duplicate@example.com',
+        'password': 'password',
+    }, follow_redirects=True)
+
+    response = client.post('/register', data={
+        'name': 'Second User',
+        'email': 'duplicate@example.com',
+        'password': 'password123',
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'already exists' in response.data
+    assert b'Registration successful' not in response.data
+
+
+def test_register_duplicate_email_case_insensitive(client):
+    client.post('/register', data={
+        'name': 'First User',
+        'email': 'CaseTest@Example.com',
+        'password': 'password',
+    }, follow_redirects=True)
+
+    response = client.post('/register', data={
+        'name': 'Second User',
+        'email': 'casetest@example.com',
+        'password': 'password123',
+    }, follow_redirects=True)
+
+    assert response.status_code == 200
+    assert b'already exists' in response.data
+
 def test_register_and_login_flow(client):
     response = client.post('/register', data={
         'name': 'Test User',

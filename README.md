@@ -52,7 +52,20 @@ A polished Flask-based blogging platform with authentication, markdown authoring
    python run.py
    ```
 
+   On Windows with Python 3.13, `run.py` disables the auto-reloader to avoid crashes. If port 5000 is busy, stop the old terminal (`Ctrl+C`) or run `$env:PORT=5001; python run.py`.
+
 4. Visit `http://127.0.0.1:5000`
+
+## GitHub Pages
+
+The repository includes a static `index.html` at the project root (the default entry file for GitHub Pages) plus a `.nojekyll` file so Jekyll does not process the site.
+
+1. In your GitHub repo, go to **Settings → Pages**.
+2. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+3. Choose the **main** branch and the **/ (root)** folder, then save.
+4. Your site will be published at `https://<username>.github.io/Blog-App/`.
+
+The root `index.html` is a static preview for GitHub Pages only. The full Flask app (login, posting, search, and database) runs with `python run.py` and uses `app/templates/home.html` for the home page.
 
 ## Docker
 

@@ -1,11 +1,17 @@
-from flask import Flask
+from pathlib import Path
+
+from flask import Flask, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
 from .config import BaseConfig
+
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -19,7 +25,11 @@ limiter = Limiter(
 )
 
 def create_app(config_overrides=None):
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder=str(APP_DIR / 'templates'),
+        static_folder=str(PROJECT_ROOT / 'static'),
+    )
     app.config.from_object(BaseConfig)
     if config_overrides:
         app.config.update(config_overrides)
@@ -51,6 +61,15 @@ def create_app(config_overrides=None):
 
     app.register_blueprint(auth)
     app.register_blueprint(blog)
+
+    @app.errorhandler(IntegrityError)
+    def handle_integrity_error(error):
+        db.session.rollback()
+        message = str(getattr(error, 'orig', error)).lower()
+        if 'user.email' in message or ('unique' in message and 'email' in message):
+            flash('An account with this email already exists. Please log in.', 'danger')
+            return redirect(url_for('auth.register'))
+        raise error
 
     # Create database tables if not already created
     if not app.config.get('TESTING'):

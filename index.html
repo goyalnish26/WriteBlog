@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - WriteBlog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-color: #534AB7;
+        --primary-dark: #3c348f;
+        --primary-light: #766de6;
+        --secondary-color: #0ea5e9;
+        --success-color: #10b981;
+        --danger-color: #ef4444;
+        --light-bg: #f8fafc;
+        --border-color: #e2e8f0;
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+      }
+      * { transition: all 0.2s ease; }
+      body {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: var(--text-dark);
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        min-height: 100vh;
+      }
+      .navbar {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+        padding: 0.75rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      .navbar-brand {
+        font-weight: 800;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .container { margin-top: 3rem; }
+      .hero-section {
+        background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary-color) 100%);
+        border-radius: 1rem;
+        padding: 3rem 2rem;
+        color: white;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px rgba(83, 74, 183, 0.15);
+      }
+      .hero-section h1 { font-weight: 700; font-size: 2.5rem; margin-bottom: 1rem; }
+      .search-box {
+        display: flex;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .tag-badge {
+        padding: 0.5rem 1.25rem;
+        border-radius: 9999px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+      .active-tag {
+        background: var(--primary-color) !important;
+        color: white !important;
+      }
+      .inactive-tag {
+        background: white !important;
+        color: var(--text-muted) !important;
+        border: 1px solid var(--border-color) !important;
+      }
+      .card {
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        background: white;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+      }
+      .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 35px rgba(83, 74, 183, 0.08);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        border: none;
+        font-weight: 600;
+      }
+      .github-pages-banner {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+      }
+      .github-pages-banner a { color: var(--primary-color); font-weight: 600; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><i class="bi bi-pencil-square"></i> WriteBlog</a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary btn-sm" href="https://github.com/goyalnish26/Blog-App" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="https://github.com/goyalnish26/Blog-App#setup" target="_blank" rel="noopener">Run locally</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="hero-section">
+    <h1><i class="bi bi-book"></i> Welcome to WriteBlog</h1>
+    <p>Discover stories, ideas, and insights from writers around the world.</p>
+  </div>
+
+  <div class="github-pages-banner" id="pages-banner">
+    <i class="bi bi-info-circle text-primary"></i>
+    You are viewing the static GitHub Pages preview. Clone the repo and run <code>python run.py</code> for login, posting, and search.
+  </div>
+
+  <div class="search-box mb-4">
+    <form class="d-flex flex-grow-1" id="search-form" style="background: white; padding: 0.5rem; border-radius: 1rem; border: 1px solid var(--border-color);">
+      <div class="d-flex align-items-center ps-3 flex-grow-1">
+        <i class="bi bi-search text-muted me-2"></i>
+        <input class="form-control border-0 bg-transparent p-2" type="search" name="q" id="search-input" placeholder="Search articles, topics..." style="box-shadow: none; outline: none;">
+      </div>
+      <button class="btn btn-primary" type="submit" style="border-radius: 0.75rem; padding: 0.6rem 1.75rem;">Search</button>
+    </form>
+  </div>
+
+  <div class="tags-section mb-4 d-flex flex-wrap gap-2 align-items-center" id="tags-section">
+    <span class="text-muted" style="font-weight: 500;"><i class="bi bi-tag-fill text-primary"></i> Filter by:</span>
+    <a href="index.html" class="tag-badge active-tag" data-tag="">All Posts</a>
+  </div>
+
+  <div id="posts-container" class="row"></div>
+  <div id="empty-state" class="alert alert-info d-none" style="display: flex; align-items: center; gap: 1rem;">
+    <i class="bi bi-info-circle" style="font-size: 1.5rem;"></i>
+    <div><strong>No posts found.</strong> Run the Flask app locally to create and browse posts.</div>
+  </div>
+</div>
+
+<footer style="margin-top: 5rem; padding: 2rem 0; background: var(--light-bg); border-top: 1px solid var(--border-color);">
+  <div class="container text-center text-muted">
+    <p>&copy; 2026 WriteBlog. Built with Flask, PostgreSQL, and love.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var apiBase = params.get('api') || '';
+  var selectedTag = params.get('tag') || '';
+  var searchQuery = params.get('q') || '';
+
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    document.getElementById('pages-banner').classList.remove('d-none');
+  } else {
+    document.getElementById('pages-banner').classList.add('d-none');
+    apiBase = apiBase || '';
+  }
+
+  document.getElementById('search-input').value = searchQuery;
+  document.getElementById('search-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var q = document.getElementById('search-input').value.trim();
+    var url = new URL('index.html', window.location.href);
+    if (q) url.searchParams.set('q', q);
+    if (selectedTag) url.searchParams.set('tag', selectedTag);
+    window.location.href = url.toString();
+  });
+
+  function renderPosts(posts) {
+    var container = document.getElementById('posts-container');
+    var empty = document.getElementById('empty-state');
+    if (!posts || !posts.length) {
+      container.innerHTML = '';
+      empty.classList.remove('d-none');
+      return;
+    }
+    empty.classList.add('d-none');
+    container.innerHTML = posts.map(function (post) {
+      var summary = (post.summary || '').slice(0, 180);
+      var tag = (post.tags && post.tags[0]) ? post.tags[0] : '';
+      return (
+        '<div class="col-lg-6 col-md-12 mb-4 d-flex">' +
+          '<div class="card w-100 p-4">' +
+            '<h3 style="font-size:1.35rem;font-weight:700;">' + escapeHtml(post.title) + '</h3>' +
+            '<p class="text-muted" style="line-height:1.6;">' + escapeHtml(summary) + (summary.length >= 180 ? '...' : '') + '</p>' +
+            '<div class="d-flex justify-content-between align-items-center text-muted small">' +
+              '<span><i class="bi bi-person"></i> ' + escapeHtml(post.author || 'Unknown') + '</span>' +
+              '<span><i class="bi bi-eye"></i> ' + (post.views || 0) + '</span>' +
+            '</div>' +
+            (tag ? '<span class="badge mt-2" style="background:rgba(83,74,183,0.1);color:#534AB7;">' + escapeHtml(tag) + '</span>' : '') +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function buildTagFilters(tags) {
+    var section = document.getElementById('tags-section');
+    tags.forEach(function (tag) {
+      var a = document.createElement('a');
+      a.href = 'index.html?tag=' + encodeURIComponent(tag);
+      a.className = 'tag-badge ' + (selectedTag === tag ? 'active-tag' : 'inactive-tag');
+      a.textContent = tag;
+      section.appendChild(a);
+    });
+  }
+
+  if (!apiBase) {
+    renderPosts([]);
+    return;
+  }
+
+  var url = apiBase.replace(/\/$/, '') + '/api/posts';
+  fetch(url)
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (data) {
+      var posts = data || [];
+      if (searchQuery) {
+        var q = searchQuery.toLowerCase();
+        posts = posts.filter(function (p) {
+          return (p.title && p.title.toLowerCase().indexOf(q) !== -1) ||
+            (p.summary && p.summary.toLowerCase().indexOf(q) !== -1);
+        });
+      }
+      if (selectedTag) {
+        posts = posts.filter(function (p) {
+          return p.tags && p.tags.indexOf(selectedTag) !== -1;
+        });
+      }
+      var allTags = [];
+      posts.forEach(function (p) {
+        (p.tags || []).forEach(function (t) {
+          if (allTags.indexOf(t) === -1) allTags.push(t);
+        });
+      });
+      buildTagFilters(allTags);
+      renderPosts(posts);
+    })
+    .catch(function () { renderPosts([]); });
+})();
+</script>
+</body>
+</html>

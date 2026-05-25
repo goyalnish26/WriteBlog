@@ -1,3 +1,5 @@
+from sqlalchemy import func
+
 from . import db
 from flask_login import UserMixin
 from datetime import datetime
@@ -21,6 +23,17 @@ class User(db.Model, UserMixin):
 
     def is_admin(self):
         return self.role == 'admin'
+
+    @staticmethod
+    def normalize_email(email):
+        return (email or '').strip().lower()
+
+    @classmethod
+    def find_by_email(cls, email):
+        normalized = cls.normalize_email(email)
+        if not normalized:
+            return None
+        return cls.query.filter(func.lower(cls.email) == normalized).first()
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
